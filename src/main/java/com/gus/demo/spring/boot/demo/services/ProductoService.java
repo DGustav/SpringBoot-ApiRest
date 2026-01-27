@@ -1,43 +1,48 @@
 package com.gus.demo.spring.boot.demo.services;
 
+import com.gus.demo.spring.boot.demo.exceptions.ProductoNoEncontradoException;
 import com.gus.demo.spring.boot.demo.models.Producto;
+import com.gus.demo.spring.boot.demo.repositories.ProductoRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.ArrayList;
 
 @Service
 public class ProductoService {
-    private List<Producto> productos = new ArrayList<>();
-    private Long contadorId = 1L;
+    private final ProductoRepository repository;
+
+    public ProductoService(ProductoRepository repository) {
+        this.repository = repository;
+    }
 
     public List<Producto> listar() {
-        return productos;
+        return repository.findAll();
     }
 
     public Producto crear(Producto producto) {
-        producto.setId(contadorId++);
-        productos.add(producto);
-        return producto;
+        return repository.save(producto);
     }
 
     public Producto obtenerPorId(Long id) {
-        return productos.stream()
-                .filter(p -> p.getId().equals(id))
-                .findFirst()
-                .orElse(null);
+        return repository.findById(id)
+                .orElseThrow(() -> new ProductoNoEncontradoException(id));
     }
 
-    public Producto actualizar(Long id, Producto nuevo) {
-        Producto existente = obtenerPorId(id);
-        if (existente != null) {
-            existente.setNombre(nuevo.getNombre());
-            existente.setPrecio(nuevo.getPrecio());
+    public Producto actualizar(Long id, Producto datos) {
+        Producto existente = repository.findById(id)
+                .orElseThrow(() -> new ProductoNoEncontradoException(id));
+
+        existente.setNombre(datos.getNombre());
+        existente.setPrecio(datos.getPrecio());
+        existente.setCategoria(datos.getCategoria());
+
+        return repository.save(existente);
+    }
+
+    public void eliminar(Long id) {
+        if (!repository.existsById(id)) {
+            throw new ProductoNoEncontradoException(id);
         }
-        return existente;
-    }
-
-    public boolean eliminar(Long id) {
-        return productos.removeIf(p -> p.getId().equals(id));
+        repository.deleteById(id);
     }
 }

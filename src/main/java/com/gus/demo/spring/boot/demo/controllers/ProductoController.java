@@ -2,6 +2,8 @@ package com.gus.demo.spring.boot.demo.controllers;
 
 import com.gus.demo.spring.boot.demo.models.Producto;
 import com.gus.demo.spring.boot.demo.services.ProductoService;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,7 +24,7 @@ public class ProductoController {
     }
 
     @PostMapping
-    public Producto crear(@RequestBody Producto producto) {
+    public Producto crear(@Valid    @RequestBody Producto producto) {
         return productoService.crear(producto);
     }
 
@@ -32,13 +34,15 @@ public class ProductoController {
     }
 
     @PutMapping("/{id}")
-    public Producto actualizar(@PathVariable Long id, @RequestBody Producto producto) {
-        return productoService.actualizar(id, producto);
+    public ResponseEntity<Producto> actualizar(@PathVariable Long id,
+                              @Valid @RequestBody Producto producto) {
+        Producto actualizado = productoService.actualizar(id, producto);
+        return ResponseEntity.ok(actualizado);
     }
 
     @DeleteMapping("/{id}")
-    public String eliminar(@PathVariable Long id) {
-        boolean borrado = productoService.eliminar(id);
-        return borrado ? "Producto eliminado" : "Producto no encontrado";
+    public ResponseEntity<String> eliminar(@PathVariable Long id) {
+        productoService.eliminar(id);
+        return ResponseEntity.ok("Producto eliminado correctamente");
     }
 }
